@@ -1,0 +1,3 @@
+Hello content for writefile This data is to be append
+Hello 2nd line
+hello 3rd line
