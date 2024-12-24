@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Todo App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .todo-list {
+      list-style-type: none;
+      padding: 0;
+    }
+    .todo-item {
+      padding: 10px;
+      border: 1px solid #ccc;
+      margin: 5px 0;
+    }
+    .todo-item.completed {
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Simple Todo Application</h1>
+
+  <input type="text" id="todo-input" placeholder="Enter a new task" />
+  <button onclick="addTodo()">Add Todo</button>
+
+  <ul id="todo-list" class="todo-list"></ul>
+
+  <script>
+    // Fetch all todos and render them
+    function fetchTodos() {
+      fetch('/todos')
+        .then(response => response.json())
+        .then(todos => {
+          const todoList = document.getElementById('todo-list');
+          todoList.innerHTML = ''; // Clear existing list
+
+          todos.forEach(todo => {
+            const li = document.createElement('li');
+            li.className = 'todo-item' + (todo.completed ? ' completed' : '');
+            li.innerHTML = `
+              ${todo.task}
+              <button onclick="deleteTodo(${todo.id})">Delete</button>
+              <button onclick="toggleCompleted(${todo.id})">${todo.completed ? 'Undo' : 'Complete'}</button>
+            `;
+            todoList.appendChild(li);
+          });
+        });
+    }
+
+    // Add a new todo
+    function addTodo() {
+      const todoInput = document.getElementById('todo-input');
+      const task = todoInput.value.trim();
+
+      if (!task) {
+        alert('Please enter a task');
+        return;
+      }
+
+      fetch('/todos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ task })
+      })
+        .then(response => response.json())
+        .then(() => {
+          todoInput.value = '';
+          fetchTodos();
+        });
+    }
+
+    // Delete a todo
+    function deleteTodo(id) {
+      fetch(`/todos/${id}`, { method: 'DELETE' })
+        .then(() => fetchTodos());
+    }
+
+    // Toggle the completion state of a todo
+    function toggleCompleted(id) {
+      fetch(`/todos/${id}`, {
+        method: 'PUT'
+      })
+        .then(response => response.json())
+        .then(() => fetchTodos());
+    }
+
+    // Initial fetch of todos
+    fetchTodos();
+  </script>
+
+</body>
+</html>
